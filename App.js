@@ -5,12 +5,11 @@ var myApp = Ext.define('CustomApp', {
     launch: function() {
       //var store = this._loadData();
       this.pullDownContainer = Ext.create('Ext.container.Container',{
+        id: 'pullDownContainerAC',
         layout: {
             type: 'hbox',
             align: 'stretch'
         },
-//        renderTo: Ext.getBody(),
-
       });
       this.add(this.pullDownContainer);
       this._loadIterations();
@@ -56,10 +55,7 @@ var myApp = Ext.define('CustomApp', {
       console.log('itCombo getRecord: ', this.iterComboBox.getRecord());
       console.log('sevCombo getRecord: ', this.severityComboBox.getRecord());
 
-      var myStore = Ext.create('Rally.data.wsapi.Store', {
-          model: 'Defect',
-          autoLoad: true,
-          filters: [
+      var myFilters = [
             {
               property: 'Iteration',
               operation: '=',
@@ -70,29 +66,44 @@ var myApp = Ext.define('CustomApp', {
               operation: '=',
               value: selectedSevValue
             }
-          ],
-          listeners:{
-              load: function(store, data, success) {
-                //console.log('got data', myStore, data, success);
-                //Grid has to be loaded from within the load function - asynchronous
-                this._loadGrid(myStore)
-              }, scope: this
-          },
-          fetch: ['FormattedID', 'Name', 'ScheduleState',  'Blocked', 'Severity', 'Iteration']
-        }
-      );
-      return myStore;
+          ];
+
+      //If store exists, reload it
+      if (this.defectStore){
+        this.defectStore.setFilter(myFilters);
+        this.defectStore.load();
+      } else {
+        console.log('Creating store...');
+        this.defectStore = Ext.create('Rally.data.wsapi.Store', {
+            model: 'Defect',
+            autoLoad: true,
+            filters: myFilters,
+            listeners:{
+                load: function(store, data, success) {
+                  //console.log('got data', myStore, data, success);
+                  //Grid has to be loaded from within the load function - asynchronous
+                  this._loadGrid();
+                }, scope: this
+            },
+            fetch: ['FormattedID', 'Name', 'ScheduleState',  'Blocked', 'Severity', 'Iteration']
+          }
+        );
+      }
     },
-    _loadGrid: function(store){
-      var myGrid = Ext.create('Rally.ui.grid.Grid', {
-        store: store,
-        columnCfgs: ['FormattedID', 'Name', 'ScheduleState', 'Blocked', 'Severity', 'Iteration']
-      });
+    _loadGrid: function(){
+      if (this.defectGrid){
+        console.log('Creating defectGrid');
+      } else {
+        console.log('no defectGrid');
+        this.defectGrid = Ext.create('Rally.ui.grid.Grid', {
+          store: this.defectStore,
+          columnCfgs: ['FormattedID', 'Name', 'ScheduleState', 'Blocked', 'Severity', 'Iteration']
+        });
+        this.add(this.defectGrid);
+      }
       //Two different ways
       //First: explicitly refer to the app
       //Second: use the scope attribute to set this to the app
       //(at the time of the function creation this refers to the app!
-      //myApp.add(myGrid);
-      this.add(myGrid);
     }
 });
