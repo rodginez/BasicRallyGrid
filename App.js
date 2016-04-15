@@ -4,6 +4,15 @@ var myApp = Ext.define('CustomApp', {
   //launch is called implicitly
     launch: function() {
       //var store = this._loadData();
+      this.pullDownContainer = Ext.create('Ext.container.Container',{
+        layout: {
+            type: 'hbox',
+            align: 'stretch'
+        },
+//        renderTo: Ext.getBody(),
+
+      });
+      this.add(this.pullDownContainer);
       this._loadIterations();
     },
 
@@ -11,19 +20,57 @@ var myApp = Ext.define('CustomApp', {
       this.iterComboBox = Ext.create('Rally.ui.combobox.IterationComboBox', {
         listeners: {
           single: true,
-          ready: this._loadData,
+          ready: function(combobox){
+            //this._loadData()
+            this._loadSeverities();
+          },
+          select: function(combobox, records){
+            this._loadData();
+          },
+          scope: this,
+        }
+      });
+      this.pullDownContainer.add(this.iterComboBox);
+
+    },
+    _loadSeverities: function(){
+      this.severityComboBox = Ext.create('Rally.ui.combobox.FieldValueComboBox', {
+        model: 'Defect',
+        field: 'Severity',
+        listeners: {
+          ready: function(){
+            this._loadData();
+          },
+          select: function(){
+            this._loadData();
+          },
           scope: this
         }
       });
-      this.add(this.iterComboBox);
-
+      this.pullDownContainer.add(this.severityComboBox);
     },
-    _loadData: function(component){
-      var selectedRef = component.getRecord().get('_ref');
+
+    _loadData: function(){
+      var selectedRef = this.iterComboBox.getRecord().get('_ref');
+      var selectedSevValue  = this.severityComboBox.getRecord().get('value');
+      console.log('itCombo getRecord: ', this.iterComboBox.getRecord());
+      console.log('sevCombo getRecord: ', this.severityComboBox.getRecord());
 
       var myStore = Ext.create('Rally.data.wsapi.Store', {
           model: 'Defect',
           autoLoad: true,
+          filters: [
+            {
+              property: 'Iteration',
+              operation: '=',
+              value: selectedRef
+            },
+            {
+              property: 'Severity',
+              operation: '=',
+              value: selectedSevValue
+            }
+          ],
           listeners:{
               load: function(store, data, success) {
                 //console.log('got data', myStore, data, success);
