@@ -23,6 +23,8 @@ var myApp = Ext.define('CustomApp', {
 
   //launch is called implicitly
     launch: function() {
+      /*
+      Explicit declaration
       var pullDownContainer = Ext.create('Ext.container.Container',{
         itemId: 'pullDownContainer',
         layout: {
@@ -30,6 +32,16 @@ var myApp = Ext.define('CustomApp', {
             align: 'stretch'
         },
       });
+*/
+      var pullDownContainer = {
+        xtype: 'container',
+        itemId: 'pullDownContainer',
+        layout: {
+            type: 'hbox',
+            align: 'stretch'
+        }
+      }
+      //The component is created only when this line is executed
       this.add(pullDownContainer);
       this._loadIterations();
     },
@@ -50,7 +62,6 @@ var myApp = Ext.define('CustomApp', {
       container.add(iterComboBox);
     },
     _loadSeverities: function(){
-      //this.severityComboBox = Ext.create('Rally.ui.combobox.FieldValueComboBox', {
       var severityComboBox = Ext.create('Rally.ui.combobox.FieldValueComboBox', {
         itemId: 'sevComboBox',
         model: 'Defect',
@@ -70,15 +81,11 @@ var myApp = Ext.define('CustomApp', {
 
     _loadData: function(){
       var pullDownContainer = this.getComponent('pullDownContainer');
-//      var iterComboBox = pullDownContainer.getComponent('iterComboBox');
-
-      var iterComboBox = this.down('iterComboBox');
       var sevComboBox = pullDownContainer.getComponent('sevComboBox');
+      var iterComboBox = pullDownContainer.getComponent('iterComboBox');
 
       var selectedIterRef = iterComboBox.getRecord().get('_ref');
       var selectedSevValue  = sevComboBox.getRecord().get('value');
-      //console.log('itCombo getRecord: ', this.iterComboBox.getRecord());
-      //console.log('sevCombo getRecord: ', this.severityComboBox.getRecord());
 
       var blockedFilter = Ext.create('Rally.data.wsapi.Filter', {
         property: 'Blocked',
@@ -92,14 +99,14 @@ var myApp = Ext.define('CustomApp', {
       console.log('combo filter', this._getFilters(selectedIterRef, selectedSevValue).toString());
       console.log('or Filter', orFilter.toString());
 
-      var defectStore = this.defectStore;
       //If store exists, reload it
-      if (defectStore){
+      if (this.defectStore){
         this.defectStore.setFilter(orFilter);
         this.defectStore.load();
       } else {
         console.log('Creating store...');
         this.defectStore = Ext.create('Rally.data.wsapi.Store', {
+            itemId: 'defectStore',
             model: 'Defect',
             autoLoad: true,
             filters: orFilter,
@@ -117,15 +124,14 @@ var myApp = Ext.define('CustomApp', {
     },
     _createGrid: function(){
       var defectGrid = this.getComponent('defectGrid');
-      var defectStore = this.getComponent('defectStore');
 
       if (defectGrid){
-        //console.log('Creating defectGrid');
+        //console.log('defectGrid exists');
       } else {
         //console.log('no defectGrid');
         defectGrid = Ext.create('Rally.ui.grid.Grid', {
           itemId: 'defectGrid',
-          store: defectStore,
+          store: this.defectStore,
           columnCfgs: ['FormattedID', 'Name', 'ScheduleState', 'Blocked', 'Severity', 'Iteration']
         });
         this.add(defectGrid);
