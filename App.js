@@ -47,7 +47,9 @@ var myApp = Ext.define('CustomApp', {
     },
 
     _loadIterations: function(){
-      var iterComboBox = Ext.create('Rally.ui.combobox.IterationComboBox', {
+      //var iterComboBox = Ext.create('Rally.ui.combobox.IterationComboBox', {
+      var iterComboBox = {
+        xtype: 'rallyiterationcombobox',
         itemId: 'iterComboBox',
         width: 300,
         fieldLabel: 'Iteration',
@@ -57,12 +59,14 @@ var myApp = Ext.define('CustomApp', {
           select: this._loadData,
           scope: this,
         }
-      });
+      };
       var container = this.getComponent('pullDownContainer');
       container.add(iterComboBox);
     },
     _loadSeverities: function(){
-      var severityComboBox = Ext.create('Rally.ui.combobox.FieldValueComboBox', {
+      //var severityComboBox = Ext.create('Rally.ui.combobox.FieldValueComboBox', {
+      var severityComboBox = {
+        xtype: 'rallyfieldvaluecombobox',
         itemId: 'sevComboBox',
         model: 'Defect',
         width: 300,
@@ -74,7 +78,7 @@ var myApp = Ext.define('CustomApp', {
           select: this._loadData,
           scope: this
         }
-      });
+      };
       var container = this.getComponent('pullDownContainer');
       container.add(severityComboBox);
     },
